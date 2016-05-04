@@ -134,7 +134,13 @@ def guest_portal(site_id):
         return redirect(url_for('guest.sms_login',track_id=guest_track.track_id),code=302) 
                
     else:
-        return get_landing_page(site_id=landing_site.id,landing_site=landing_site,track_id=guest_track.track_id)
+        guest_session.state = SESSION_TEMP_AUTH
+        db.session.commit()       
+        if landing_site.fb_appid:
+            fb_appid= landing_site.fb_appid
+        else:
+            fb_appid = current_app.config['FB_APP_ID']    
+        return get_landing_page(site_id=landing_site.id,landing_site=landing_site,track_id=guest_track.track_id,app_id=fb_appid)
 
 
 @bp.route('/auth/guest/<track_id>')
@@ -180,15 +186,9 @@ def authorize_guest(track_id):
     guest_session.expiry = arrow.utcnow().replace(minutes=duration + 10).naive
     db.session.commit()
     #Code to handle guest after successful login 
-    
-    #if guest_track.site.redirect_method == REDIRECT_ORIG_URL and guest_track.orig_url:
-        #return redirect(format_url(guest_track.orig_url),code=302)
-    #elif guest_track.site.redirect_url:
-        #redirect User to default URL if configured
-       # return redirect(format_url(guest_track.site.redirect_url),code=302)
-    #else:
-        #redirect user to google.com
-    return redirect(format_url("www.google.com"),code=302)
+    landing_site    = Wifisite.query.filter_by(id=guest_track.site_id).first()
+    landing_page    = Landingpage.query.filter_by(id=landing_site.default_landing).first()
+    return render_template('guest/%s/show_message.html'%landing_site.template,landing_site=landing_site,landing_page=landing_page)
 
 @bp.route('/tempauth/guest/<track_id>')
 def temp_authorize_guest(track_id):
@@ -323,7 +323,7 @@ def facebook_login(track_id):
             profile_check.token         = check_user_auth['access_token']
             profile_check.site = landing_site
             db.session.add(profile_check)
-            db.session.commit
+            db.session.commit()
             current_app.logger.debug('Wifiguest Log - Site ID:%s facebook_login  adding new FB profile ID:%s for track ID:%s'%(guest_track.site_id,profile_check.id,guest_track.id))
             
         #profile already added to DB, check if the user had already authorized the site

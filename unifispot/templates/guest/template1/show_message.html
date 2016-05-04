@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, target-densitydpi=device-dpi, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <!-- These are Open Graph tags.-->
     <meta property="fb:app_id" content="{{ app_id }}" />
+    <meta http-equiv="refresh" content="10; url=http://ww.google.com/" />
     <!-- Bootstrap -->
     
 
@@ -137,48 +138,27 @@ ul{
 		</div><!-- //header-->
 		<div class="row row-top-content">
 			<div class="col-top-content">				
-				<p class="midle-top-cont text-center"></p>
+				<p class="midle-top-cont text-center">Please Wait <img src='{{url_for('static',filename='img/ajax_loader.gif')}}' /></p>
 			</div>
 		</div><!-- //top content-->
         <div class="row row-middle-content ">
-            <div class="col-xs-offset-2 col-sm-offset-3 col-md-offset-3 col-xs-8 col-sm-6 col-md-6">
-                {% if landing_site.email_login_en() %}
 
-                <a class="btn btn-guest full-width m-b " href="{{url_for('guest.email_login',track_id=track_id)}}"  id="email-select">
-                    <i class="fa fa-envelope"> </i> Login Using Email</a>
-                {%endif%}
-                {% if landing_site.phone_login_en() %}
-                <a class="btn btn-guest full-width m-b " href="{{url_for('guest.sms_login',track_id=track_id)}}" id="phone-select" >
-                    <i class="fa fa-phone-square"> </i> Login Using Phone
-                {%endif%}
-                {% if landing_site.fb_login_en() %}
-                <a class="btn btn-guest full-width m-b " href="{{url_for('guest.social_login',track_id=track_id)}}" id="fb-select" >
-                    <i class="fa fa-facebook-square"> </i> Login Using FB</a>
-                {%endif%}
-                {% if landing_site.voucher_login_en() %}
-                <a class="btn btn-guest full-width m-b " href="{{url_for('guest.voucher_login',track_id=track_id)}}" id="voucher-select" >
-                    <i class="fa fa-money"> </i> Login Using Voucher</a>
-                {%endif%}
-            </div>
+            <div class="col-xs-offset-2 col-sm-offset-3 col-md-offset-3 col-xs-8 col-sm-6 col-md-6">
+                If you are not redirected automatically, please <a href="http://www.google.com">click</a>
+            </a>
+
+
             
         </div><!-- //middle content-->
 		<div class="row row-bottom">			
 
-			<div class="col-xs-offset-2 col-sm-offset-3 col-md-offset-3">
-					<p class="bottom-text">
-					By Logging in you are agreeing to our 
-					{% if landing_page.tosfile %} 
-					<a href="{{landing_page.tosfile}}"><u>USER AGREEMENT</u></a>
-					{% else %}USER AGREEMENT{%endif%} </p>
-                    <p class="bottom-text" ></p>
-			</div>
 		</div><!-- //bottom content-->
 		<div class="row row-footer">
 			<ul class=" text-center">
                 {{landing_page.copytextcont|safe}}
 			</ul>
             <!-- License start you are free to modify the source as long as below content is kept untouched -->
-          <div class=" text-center page-footer-inner">
+            <div class=" text-center page-footer-inner">
              Powered by <a href="http://www.unifispot.com" title="Captive portal with Socil Login and Data collection" target="_blank">Unifispot</a>
             </div>
 		</div><!-- //footer content-->
@@ -191,12 +171,13 @@ ul{
         <script src="{{ url_for('static', filename='guest/js/jquery.blockui.min.js')}}" type="text/javascript"></script>
         
 	<script type="text/javascript">
-    $(document).ready(function() {
-        
-        $.ajaxSetup({ cache: true });
-        $('#fb-select').click(function(e){
-                e.preventDefault(); 
-                $.blockUI({ message: '<h2><img src="/static/img/loading-spinner-blue.gif" /> Loading..</h2>',css: { 
+    setTimeout(function () {
+            window.location.href = "http://www.google.com"; //will redirect to your blog page (an ex: blog.html)
+    }, 10000); //will call the function after 2 secs.
+
+
+	$(document).ready(function() {
+        $.blockUI({ message: '<h2><img src="/static/img/loading-spinner-blue.gif" /> Loading..</h2>',css: { 
                             border: 'none', 
                             padding: '15px', 
                             backgroundColor: '#000', 
@@ -205,62 +186,7 @@ ul{
                             opacity: .5, 
                             color: '#fff' 
                         } }); 
-                $.ajaxSetup({
-                    type: 'POST',
-                    timeout: 30000,
-                    error: function(xhr) {
-                            $.unblockUI();
-                            alert("ERROR", "Network timeout!!,Please try again later");
-                         }
-                 });                                       
-                $.ajax({
-                    type: 'get',
-                    url: "{{url_for('guest.temp_authorize_guest',track_id=track_id)}}",
-                    
-                    data: {},
-                    success: function(data) {
-                        if (data.status) {
-                            var tid = setInterval(function() {
-                                $.getScript('//connect.facebook.net/en_US/sdk.js', function(){
-                                    clearInterval( tid );
-                                    $.unblockUI();
-                                    FB.init({
-                                          appId: '{{app_id}}',
-                                          status: false,
-                                          cookie: true,
-                                          version: 'v2.3' // or v2.0, v2.1, v2.0
-                                     });                                      
-                                    FB.getLoginStatus(function(response) {
-                                        console.log(response);
-                                        //console(response);
-                                        if (response.status === 'connected') {
-                                            window.location.href = "{{url_for('guest.facebook_login',track_id=track_id,_external=True)}}";
-                                          // Logged into your app and Facebook.
-                                          //testAPI();
-                                          
-                                        }
-                                        else{
-                                            uri = '{{request.url}}';
-                                             window.location = encodeURI("https://www.facebook.com/dialog/oauth?client_id={{app_id}}&scope=email&redirect_uri="+uri+"&response_type=token");
-                                        }
-
-                                    }); 
-                                });
-
-                            }, 5000); //5 seconds    
-
-                        }else{
-                            $.unblockUI();
-                            alert(data.msg);
-                        }
-
-                }
-                });
-                return false;
-                
-               
-        });
     });
-    </script>
+	</script>
 </body>
 </html>
