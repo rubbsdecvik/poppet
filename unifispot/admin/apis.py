@@ -458,16 +458,28 @@ class AccesspointAPI(UnifispotAPI):
                     current_app.logger.debug("No Settings Entry in User table!! %s "%(request.url))  
                     return jsonify({'status': 0,'msg':'Error while loading settings'})
                 else:
-                    c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                    try:
+                        c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                    except:
+                        msg = 'Exception while trying to do Unifi Login check controller ip/username/password'
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})
+
                 if current_user.type =='admin':
                     sites = Wifisite.query.filter_by(account_id=current_user.account_id).all()
                 elif current_user.type =='client':
                     sites = Wifisite.query.filter_by(client_id=current_user.id).all()
                 if sites:
                     for site in sites:
-                        site_aps = c.get_aps(site_id=site.unifi_id)
-                        for site_ap in site_aps:
-                            ap_list.append([site_ap.get('mac'),site_ap.get('name'),site.name,ap_status_generate(site_ap.get('state'))])
+                        try:
+                            site_aps = c.get_aps(site_id=site.unifi_id)
+                            for site_ap in site_aps:
+                                ap_list.append([site_ap.get('mac'),site_ap.get('name'),site.name,ap_status_generate(site_ap.get('state'))])                            
+                        except:
+                            msg= 'Exception while fetching APs for site:%s check siteid'%site.name
+                            current_app.logger.exception(msg)
+                            return jsonify({'status': 1,'data':[],'error':msg})
+
             else:
                 ap_list = [['11:22:33:44:55:66',"AP1",'SITE1','<span class="label label-success">AP Active</span>'],['11:22:33:44:55:66',"AP4",'SITE4',ap_status_generate(2)],['11:22:33:44:55:66',"AP1",'SIT31',ap_status_generate(1)],['11:22:33:44:55:66',"AP1",'SITE1',ap_status_generate(1)]]
 
@@ -486,10 +498,20 @@ class AccesspointAPI(UnifispotAPI):
                     current_app.logger.debug("No Settings Entry in User table!! %s "%(request.url))  
                     return jsonify({'status': 0,'msg':'Error while loading settings'})
                 if wifisite:
-                    c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
-                    site_aps = c.get_aps(site_id=wifisite.unifi_id)
-                    for site_ap in site_aps:
-                        ap_list.append([site_ap.get('mac'),site_ap.get('name'),wifisite.name,ap_status_generate(site_ap.get('state'))])
+                    try:
+                        c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                    except:
+                        msg = 'Exception while trying to do Unifi Login check controller ip/username/password'
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})
+                    try:
+                        site_aps = c.get_aps(site_id=wifisite.unifi_id)                       
+                        for site_ap in site_aps:
+                            ap_list.append([site_ap.get('mac'),site_ap.get('name'),wifisite.name,ap_status_generate(site_ap.get('state'))])
+                    except:
+                        msg= 'Exception while fetching APs for site:%s check siteid'%wifisite.name
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})
             else:
                 ap_list = [['11:22:33:44:55:66',"AP1",'SITE1',ap_status_generate(1)],['11:22:33:44:55:66',"AP4",'SITE4',ap_status_generate(2)],['11:22:33:44:55:66',"AP1",'SIT31',ap_status_generate(1)],['11:22:33:44:55:66',"AP1",'SITE1',ap_status_generate(1)]]
         return jsonify({'status': 1,'data':ap_list})
@@ -551,19 +573,28 @@ class DevicesAPI(UnifispotAPI):
                 if not settings:
                     current_app.logger.debug("No Settings Entry in User table!! %s "%(request.url))  
                     return jsonify({'status': 0,'msg':'Error while loading settings'})
-                else:
-                    c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
                 if current_user.type =='admin':
                     sites = Wifisite.query.filter_by(account_id=current_user.account_id).all()
                 elif current_user.type =='client':
                     sites = Wifisite.query.filter_by(client_id=current_user.id).all() 
-                if sites:                   
-                    c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                if sites:       
+                    try:            
+                        c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                    except:
+                        msg = 'Exception while trying to do Unifi Login check controller ip/username/password'
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})
+
                     for site in sites:
-                        site_clients = c.get_clients(site_id=site.unifi_id)
-                        for site_client in site_clients:
-                            if site_client.get('is_guest'):
-                                client_list.append(guest_status_generate(site_client,site.name))
+                        try:
+                            site_clients = c.get_clients(site_id=site.unifi_id)
+                            for site_client in site_clients:
+                                if site_client.get('is_guest'):
+                                    client_list.append(guest_status_generate(site_client,site.name))                           
+                        except:
+                            msg= 'Exception while fetching Clients for site:%s check siteid'%site.name
+                            current_app.logger.exception(msg)
+                            return jsonify({'status': 1,'data':[],'error':msg})
             else:
                 client_list = [['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>'],['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>'],['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>']]
 
@@ -580,11 +611,22 @@ class DevicesAPI(UnifispotAPI):
                 elif current_user.type =='client':
                     wifisite = Wifisite.query.filter(and_(Wifisite.id==id,Wifisite.client_id==current_user.id)).first()
                 if wifisite:
-                    c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
-                    site_clients = c.get_clients(site_id=wifisite.unifi_id)
-                    for site_client in site_clients:
-                         if site_client.get('is_guest'):
-                            client_list.append(guest_status_generate(site_client,wifisite.name))
+                    try:
+                        c = Controller(settings['unifi_server'], settings['unifi_user'], settings['unifi_pass'],version='v4',site_id='default')
+                    except:
+                        msg = 'Exception while trying to do Unifi Login check controller ip/username/password'
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})
+                    try:
+                        site_clients = c.get_clients(site_id=wifisite.unifi_id)              
+                        for site_client in site_clients:
+                             if site_client.get('is_guest'):
+                                client_list.append(guest_status_generate(site_client,wifisite.name))
+
+                    except:
+                        msg= 'Exception while fetching Clients for site:%s check siteid'%wifisite.name
+                        current_app.logger.exception(msg)
+                        return jsonify({'status': 1,'data':[],'error':msg})       
             else:
                 client_list = [['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>'],['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>'],['SITE1','11:22:33:44:55:66','11:22:33:44:55:66',"40",'00:41','<span class="label label-success">Authorized</span>']]
         return jsonify({'status': 1,'data':client_list})

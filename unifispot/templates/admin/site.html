@@ -118,6 +118,23 @@
         $(document).ready(function() {
           // $('.dataTables-example').DataTable();
             create_site_menu(siteid={{site_id}});
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "positionClass": "toast-top-right",
+                "onclick": null,
+                "showDuration": "1000",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            };
+            $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
+                var $toast = toastr['error']("ERROR", message);
+            };             
             $('#ap-table').DataTable({
                 "ajax": "/admin/ap/api/{{site_id}}",
                  });
