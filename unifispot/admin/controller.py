@@ -129,7 +129,7 @@ class Controller:
                 try:                
                     res = self.opener.open(url, params) 
                 except urllib2.URLError,e:
-                    logger.info('URL error while trying connect to %s'%self.url)
+                    log.info('URL error while trying connect to %s'%self.url)
                     sleep(backofftime)
                     backofftime = backofftime * 2
                     trial = trial + 1
@@ -195,7 +195,7 @@ class Controller:
                 try:                       
                     self.opener.open(self.url + 'login', params).read()
                 except urllib2.URLError,e:
-                    logger.info('URL error while trying connect to %s'%self.url)
+                    log.info('URL error while trying connect to %s'%self.url)
                     sleep(backofftime)
                     backofftime = backofftime * 2
                     trial = trial + 1
@@ -212,7 +212,7 @@ class Controller:
             try:         
                 self.opener.open(self.url + 'logout').read()
             except urllib2.URLError,e:
-                logger.info('URL error while trying connect to %s'%self.url)
+                log.info('URL error while trying connect to %s'%self.url)
                 sleep(backofftime)
                 backofftime = backofftime * 2
                 trial = trial + 1

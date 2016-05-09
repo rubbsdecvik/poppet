@@ -111,6 +111,9 @@
         $(document).ready(function() {
           // $('.dataTables-example').DataTable();
             create_client_site_menu(siteid={{siteid}});
+            $.fn.dataTable.ext.errMode = function ( settings, helpPage, message ) { 
+                console.log(message);
+            };             
             $('#ap-table').DataTable({
                 "ajax": "/admin/ap/api/{{siteid}}",
                  });
