@@ -52,6 +52,7 @@
     python manage.py db init
     python manage.py db migrate
     python manage.py db upgrade
+    python manage.py init_data
     ```
 
 7. Configure uWSGI and Nginx
